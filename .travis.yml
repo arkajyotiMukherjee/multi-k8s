@@ -1,4 +1,8 @@
 sudo: required
+cache:
+  directories:
+    # We cache the SDK so we don't have to download it again on subsequent builds.
+    - $HOME/google-cloud-sdk
 services:
   - docker
 env:
@@ -8,9 +12,13 @@ env:
     - CLOUDSDK_CORE_CHECK_GCE_METADATA=False
 before_install:
   - openssl aes-256-cbc -K $encrypted_9f3b5599b056_key -iv $encrypted_9f3b5599b056_iv -in service-account.json.enc -out service-account.json -d
-  - curl https://sdk.cloud.google.com | bash > /dev/null;
+  - if [ ! -d $HOME/google-cloud-sdk/bin ]; then
+    rm -rf $HOME/google-cloud-sdk;
+    curl https://sdk.cloud.google.com | bash > /dev/null;
+    fi
   - source $HOME/google-cloud-sdk/path.bash.inc
   - gcloud components update kubectl
+  - gcloud version
   - gcloud auth activate-service-account --key-file services-account.json
   - gcloud config set project airy-digit-284816
   - gcloud config set compute/zone us-central1-c
